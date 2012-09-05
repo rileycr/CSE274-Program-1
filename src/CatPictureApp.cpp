@@ -23,8 +23,13 @@ private:
 	float green_;
 	float blue_;
 
+	//Colors for my shapes
+	Color8u circleColor;
+	Color8u rectColor;
+
 	// increments as the program runs and keeps track of time
 	float time_;
+	int circleTime_;
 
 	static const int kAppWidth = 800;
 	static const int kAppHeight = 600;
@@ -32,6 +37,7 @@ private:
 	
 	void drawRectangle(uint8_t* pixels, int x, int y, int rectWidth, int rectHeight, Color8u fillColor);
 	void drawCircle(uint8_t* pixels, int centerX, int centerY, int radius, Color8u fillColor);
+	void drawTint(Color8u firstColor, Color8u tintColor);
 };
 
 void CatPictureApp::drawRectangle(uint8_t* pixels, int x1, int y1, int rectWidth, int rectHeight, Color8u fillColor){
@@ -53,8 +59,8 @@ void CatPictureApp::drawRectangle(uint8_t* pixels, int x1, int y1, int rectWidth
 void CatPictureApp::drawCircle(uint8_t* pixels, int centerX, int centerY , int radius, Color8u fillColor){
 	for(int y=0; y<kAppHeight; y++){
 		for(int x=0; x<kAppWidth; x++){
-			double doubleY = y+0.0;
-			double doubleX = x+0.0;
+			float doubleY = y+0.0;
+			float doubleX = x+0.0;
 
 			if(((doubleX-centerX)*(doubleX-centerX) + (doubleY-centerY)*(doubleY-centerY) <= radius*radius)){
 				pixels[3*(x + y*kTextureSize)] = fillColor.r;
@@ -65,15 +71,30 @@ void CatPictureApp::drawCircle(uint8_t* pixels, int centerX, int centerY , int r
 	}
 }
 
+void CatPictureApp::drawTint(Color8u firstColor, Color8u tintColor){
+	for(int i = 0; i < 1024*1024; i++){
+		firstColor.r = (firstColor.r + tintColor.r)%255;
+		firstColor.g = (firstColor.g + tintColor.g)%255;
+		firstColor.b = (firstColor.b + tintColor.b)%255;
+	}
+
+	circleColor = firstColor;
+}
+
 
 void CatPictureApp::setup()
 {
 	mySurface_ = new Surface(kTextureSize,kTextureSize,false);
+	circleTime_ = 0;
 	time_ = 0.0;
+	rectColor = Color8u(0, 139, 57);
+	circleColor = Color8u(255, 255, 255);
 }
 
-void CatPictureApp::mouseDown( MouseEvent event )
-{
+void CatPictureApp::mouseDown( MouseEvent event ){
+	
+	drawTint(circleColor, Color8u(10, 20, 30));
+
 }
 
 void CatPictureApp::update(){
@@ -94,12 +115,11 @@ void CatPictureApp::update(){
 			dataArray[3*(i)+2] = 255*blue_;
 	}
 
+	circleTime_ += 5;
 
-	Color8u rectColor = Color8u(0, 139, 57);
-	Color8u circleColor = Color8u(255, 255, 255);
-
-	drawCircle(dataArray, 300, 300, 100, circleColor);
-	drawRectangle(dataArray, 100, 100, 200, 100, rectColor);
+	drawCircle(dataArray, circleTime_%kAppWidth, circleTime_%kAppHeight, 100, circleColor);
+	
+	drawRectangle(dataArray, 50, 113, 200, 100, rectColor);
 }
 
 void CatPictureApp::draw()
