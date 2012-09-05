@@ -35,9 +35,19 @@ private:
 	static const int kAppHeight = 600;
 	static const int kTextureSize = 1024;
 	
+	//This method draws a rectangle onto the surface at a specified point as the top left corner
+	//and with a width and height.  It is colored according to the fillColor parameter.
 	void drawRectangle(uint8_t* pixels, int x, int y, int rectWidth, int rectHeight, Color8u fillColor);
+
+	//Draws a circle at the given point and radius with the specified fillColor.
 	void drawCircle(uint8_t* pixels, int centerX, int centerY, int radius, Color8u fillColor);
+
+	//This is the copy method which copies a portion of the image and pastes it somewhere else.  It takes the rectangle
+	//from point (startX, startY) with the given width and height and pastes it at (endX, endY) with the same
+	//dimensions.
 	void copyRectangularSection(uint8_t* pixels, int startX, int startY, int width, int height, int endX, int endY);
+
+	//This method is called when the mouse is clicked, it changes the color of the circle.
 	void drawCircleTint(Color8u firstColor, Color8u tintColor);
 };
 
@@ -63,6 +73,7 @@ void CatPictureApp::drawCircle(uint8_t* pixels, int centerX, int centerY , int r
 			float doubleY = y+0.0;
 			float doubleX = x+0.0;
 
+			//Determining if the point is inside the circle
 			if(((doubleX-centerX)*(doubleX-centerX) + (doubleY-centerY)*(doubleY-centerY) <= radius*radius)){
 				pixels[3*(x + y*kTextureSize)] = fillColor.r;
 				pixels[3*(x + y*kTextureSize)+1] = fillColor.g;
@@ -72,6 +83,8 @@ void CatPictureApp::drawCircle(uint8_t* pixels, int centerX, int centerY , int r
 	}
 }
 
+//This changes the color of the circle by a set amount % 255 so the color
+//cycles back to black if they go over the limit.
 void CatPictureApp::drawCircleTint(Color8u firstColor, Color8u tintColor){
 	for(int i = 0; i < 1024*1024; i++){
 		firstColor.r = (firstColor.r + tintColor.r)%255;
@@ -91,11 +104,11 @@ void CatPictureApp::copyRectangularSection(uint8_t* pixels, int startX, int star
 	}
 }
 
-void CatPictureApp::setup()
-{
+void CatPictureApp::setup(){
+
 	mySurface_ = new Surface(kTextureSize,kTextureSize,false);
-	circleTime_ = 0;
-	time_ = 0.0;
+	circleTime_ = 0;   //Used to keep track of the movement of the circle
+	time_ = 0.0;   //keeps track of the changing colors of the background
 	rectColor = Color8u(0, 139, 57);
 	circleColor = Color8u(255, 255, 255);
 }
@@ -108,6 +121,7 @@ void CatPictureApp::mouseDown( MouseEvent event ){
 
 void CatPictureApp::update(){
 
+	//The changing of the background color.
 	time_ = time_ + 0.05;
 	red_ = .5*cos(time_/2) + 0.5;
 	green_ = .5*cos(time_) + 0.5;
@@ -117,25 +131,26 @@ void CatPictureApp::update(){
 	//Get our array of pixel information
 	uint8_t* dataArray = (*mySurface_).getData();
 
-	//Colors the surface's background in changing colors
+	//Draws the color onto the surface's background.
 	for(int i = 0; i < 1024*1024; i++){
 			dataArray[3*(i)] = 255*red_;
 			dataArray[3*(i)+1] = 255*green_;
 			dataArray[3*(i)+2] = 255*blue_;
 	}
 
+	//Circle's position is incremented and redrawn.
 	circleTime_ += 5;
-
 	drawCircle(dataArray, circleTime_%kAppWidth, circleTime_%kAppHeight, 100, circleColor);
 	
+	//Rectangle is drawn.
 	drawRectangle(dataArray, 50, 100, 200, 100, rectColor);
 
+	//The portion of the image is copied and pasted.
 	copyRectangularSection(dataArray, 200, 150, 150, 150, 400, 300);
 }
 
 void CatPictureApp::draw()
 {
-
 	gl::draw(*mySurface_);
 }
 
