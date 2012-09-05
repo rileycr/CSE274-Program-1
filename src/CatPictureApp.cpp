@@ -37,7 +37,8 @@ private:
 	
 	void drawRectangle(uint8_t* pixels, int x, int y, int rectWidth, int rectHeight, Color8u fillColor);
 	void drawCircle(uint8_t* pixels, int centerX, int centerY, int radius, Color8u fillColor);
-	void drawTint(Color8u firstColor, Color8u tintColor);
+	void copyRectangularSection(uint8_t* pixels, int startX, int startY, int width, int height, int endX, int endY);
+	void drawCircleTint(Color8u firstColor, Color8u tintColor);
 };
 
 void CatPictureApp::drawRectangle(uint8_t* pixels, int x1, int y1, int rectWidth, int rectHeight, Color8u fillColor){
@@ -71,16 +72,24 @@ void CatPictureApp::drawCircle(uint8_t* pixels, int centerX, int centerY , int r
 	}
 }
 
-void CatPictureApp::drawTint(Color8u firstColor, Color8u tintColor){
+void CatPictureApp::drawCircleTint(Color8u firstColor, Color8u tintColor){
 	for(int i = 0; i < 1024*1024; i++){
 		firstColor.r = (firstColor.r + tintColor.r)%255;
 		firstColor.g = (firstColor.g + tintColor.g)%255;
 		firstColor.b = (firstColor.b + tintColor.b)%255;
 	}
-
 	circleColor = firstColor;
 }
 
+void CatPictureApp::copyRectangularSection(uint8_t* pixels, int startX, int startY, int width, int height, int endX, int endY){
+	for(int i = startY; i<startY+height; i++){
+		for(int j = startX; j<startX+width; j++){
+			pixels[3*(j+height + (i+width)*kTextureSize)] = pixels[3*(j+i*kTextureSize)];
+			pixels[3*(j+height + (i+width)*kTextureSize)+1] = pixels[3*(j+i*kTextureSize)+1];
+			pixels[3*(j+height + (i+width)*kTextureSize)+2] = pixels[3*(j+i*kTextureSize)+2];
+		}
+	}
+}
 
 void CatPictureApp::setup()
 {
@@ -93,7 +102,7 @@ void CatPictureApp::setup()
 
 void CatPictureApp::mouseDown( MouseEvent event ){
 	
-	drawTint(circleColor, Color8u(10, 20, 30));
+	drawCircleTint(circleColor, Color8u(13, 27, 31));
 
 }
 
@@ -119,7 +128,9 @@ void CatPictureApp::update(){
 
 	drawCircle(dataArray, circleTime_%kAppWidth, circleTime_%kAppHeight, 100, circleColor);
 	
-	drawRectangle(dataArray, 50, 113, 200, 100, rectColor);
+	drawRectangle(dataArray, 50, 100, 200, 100, rectColor);
+
+	copyRectangularSection(dataArray, 200, 150, 150, 150, 400, 300);
 }
 
 void CatPictureApp::draw()
