@@ -49,6 +49,9 @@ private:
 
 	//This method is called when the mouse is clicked, it changes the color of the circle.
 	void drawCircleTint(Color8u firstColor, Color8u tintColor);
+
+	//Blurs the image but reduces the framerate drastically.
+	void blur(uint8_t* pixels);
 };
 
 void CatPictureApp::drawRectangle(uint8_t* pixels, int x1, int y1, int rectWidth, int rectHeight, Color8u fillColor){
@@ -86,7 +89,7 @@ void CatPictureApp::drawCircle(uint8_t* pixels, int centerX, int centerY , int r
 //This changes the color of the circle by a set amount % 255 so the color
 //cycles back to black if they go over the limit.
 void CatPictureApp::drawCircleTint(Color8u firstColor, Color8u tintColor){
-	for(int i = 0; i < 1024*1024; i++){
+	for(int i = 0; i < kTextureSize*kTextureSize; i++){
 		firstColor.r = (firstColor.r + tintColor.r)%255;
 		firstColor.g = (firstColor.g + tintColor.g)%255;
 		firstColor.b = (firstColor.b + tintColor.b)%255;
@@ -102,6 +105,27 @@ void CatPictureApp::copyRectangularSection(uint8_t* pixels, int startX, int star
 			pixels[3*(j+height + (i+width)*kTextureSize)+2] = pixels[3*(j+i*kTextureSize)+2];
 		}
 	}
+}
+
+//Blurs the image but slows down the animation.
+void CatPictureApp::blur(uint8_t* pixels){
+	uint8_t* newPixels = pixels;
+	for(int y = 0; y < kAppHeight; y++){
+		for(int x = 0; x < kAppWidth; x++){
+
+			for(int i = y-1; i < y+1; i++){
+				for(int j = x-1; j < x+1; j++){
+
+					newPixels[3*(x + y*kTextureSize)] += (1/9)*pixels[3*(j + i*kTextureSize)];
+					newPixels[3*(x + y*kTextureSize)+1] += (1/9)*pixels[3*(x + y*kTextureSize)+1];
+					newPixels[3*(x + y*kTextureSize)+2] += (1/9)*pixels[3*(x + y*kTextureSize)+2];
+
+				}
+			}
+		}
+	}
+
+	pixels = newPixels;
 }
 
 void CatPictureApp::setup(){
@@ -132,7 +156,7 @@ void CatPictureApp::update(){
 	uint8_t* dataArray = (*mySurface_).getData();
 
 	//Draws the color onto the surface's background.
-	for(int i = 0; i < 1024*1024; i++){
+	for(int i = 0; i < kTextureSize*kTextureSize; i++){
 			dataArray[3*(i)] = 255*red_;
 			dataArray[3*(i)+1] = 255*green_;
 			dataArray[3*(i)+2] = 255*blue_;
@@ -147,6 +171,8 @@ void CatPictureApp::update(){
 
 	//The portion of the image is copied and pasted.
 	copyRectangularSection(dataArray, 200, 150, 150, 150, 400, 300);
+
+	blur(dataArray);
 }
 
 void CatPictureApp::draw()
