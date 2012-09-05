@@ -181,3 +181,4 @@ void CatPictureApp::draw()
 }
 
 CINDER_APP_BASIC( CatPictureApp, RendererGl )
+
