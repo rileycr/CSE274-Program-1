@@ -116,9 +116,9 @@ void CatPictureApp::blur(uint8_t* pixels){
 			for(int i = y-1; i < y+1; i++){
 				for(int j = x-1; j < x+1; j++){
 
-					newPixels[3*(x + y*kTextureSize)] += (1/9)*pixels[3*(j + i*kTextureSize)];
-					newPixels[3*(x + y*kTextureSize)+1] += (1/9)*pixels[3*(x + y*kTextureSize)+1];
-					newPixels[3*(x + y*kTextureSize)+2] += (1/9)*pixels[3*(x + y*kTextureSize)+2];
+					newPixels[3*(x + y*kTextureSize)] += (1.0/9.0)*pixels[3*(j + i*kTextureSize)];
+					newPixels[3*(x + y*kTextureSize)+1] += (1.0/9.0)*pixels[3*(x + y*kTextureSize)+1];
+					newPixels[3*(x + y*kTextureSize)+2] += (1.0/9.0)*pixels[3*(x + y*kTextureSize)+2];
 
 				}
 			}
